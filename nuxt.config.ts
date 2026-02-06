@@ -9,5 +9,8 @@ export default defineNuxtConfig({
     plugins: [
       tailwindcss()
     ]
+  },
+  runtimeConfig: {
+    github: import.meta.env.PERSONAL_ACCESS_TOKENS
   }
 })
