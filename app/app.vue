@@ -20,5 +20,6 @@ useHead({
 .page-enter-from,
 .page-leave-to {
   filter: grayscale(1);
+  opacity: 0;
 }
 </style>

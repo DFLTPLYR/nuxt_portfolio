@@ -56,6 +56,7 @@
                 <CodeComment> watched some 100seconds of rust and time to update the portfolio</CodeComment>
               </li>
               <li>GdScript</li>
+              <li>QML</li>
             </ul>
           </div>
           <!-- Frameworks -->
@@ -63,10 +64,13 @@
             <h2 class="text-xl text-amber-300 mb-2">// Frameworks & Libraries</h2>
             <ul class="list-none text-lg text-amber-100 space-y-2">
               <li>Vue.js / Svelte / React (lil. bit)</li>
-              <li>Laravel / Electron / Qml</li>
-              <li>Tailwind CSS <CodeComment>wait chatgpt-ing how to center a div</CodeComment>
+              <li>Laravel</li>
+              <li>Electron</li>
+              <li>Capacitorjs <CodeComment>i swear ill learn mobile development</CodeComment>
               </li>
               <li class="-mx-2">CSS <CodeComment>i love css ❤️</CodeComment>
+              </li>
+              <li>Tailwind CSS <CodeComment>wait chatgpt-ing how to center a div</CodeComment>
               </li>
             </ul>
           </div>
