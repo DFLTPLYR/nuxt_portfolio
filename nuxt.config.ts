@@ -14,6 +14,7 @@ export default defineNuxtConfig({
     github: import.meta.env.PERSONAL_ACCESS_TOKENS
   },
   app: {
+    pageTransition: { name: 'page', mode: 'out-in' },
     head: {
       title: 'JC BLOG',
       meta: [
@@ -25,6 +26,5 @@ export default defineNuxtConfig({
         { rel: 'icon', type: 'image/x-icon', href: '/CloudLogo.svg' }
       ]
     },
-
   }
 })
