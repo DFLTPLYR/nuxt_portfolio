@@ -9,6 +9,7 @@ export default defineEventHandler(async (event) => {
     })
     const { data: user } = await octokit.rest.users.getAuthenticated()
     const username = 'DFLTPLYR'
+
     const { data: commits } = await octokit.request('GET /search/commits', {
       q: `author:${username}`,
       headers: {

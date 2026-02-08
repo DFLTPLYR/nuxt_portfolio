@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const { data, pending } = await useFetch('/api/commits')
-
 </script>
 
 <template>
