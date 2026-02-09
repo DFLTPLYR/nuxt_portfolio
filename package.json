@@ -10,6 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@netlify/blobs": "^10.6.0",
     "@nuxt/content": "^3.11.2",
     "@tailwindcss/vite": "^4.1.18",
     "github-colors": "^2.2.21",

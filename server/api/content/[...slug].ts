@@ -1,4 +1,5 @@
 import { Octokit } from "octokit"
+import { getStore } from "@netlify/blobs"
 
 function decodeBase64(str: string): string {
   try {
@@ -23,18 +24,29 @@ function decodeBase64(str: string): string {
 export default defineEventHandler(async (event) => {
   const env = useRuntimeConfig(event)
   const slug = event.context.params!.slug
-  const storage = useStorage('content')
-  const metadataKey = `content:${slug}:metadata`
-  const contentKey = `content:${slug}:file`
+  const store = getStore({
+    name: "content",
+    consistency: "strong"
+  })
+  const metadataKey = `${slug}:metadata`
+  const contentKey = `${slug}:content`
   
-  // Check if content exists in storage
-  const hasFile = await storage.hasItem(contentKey)
+  // Check if content exists in blobs
+  const hasFile = await store.get(metadataKey)
 
   // If content exists in storage, try to update from GitHub but don't fail if GitHub is unavailable
   if (hasFile) {
     try {
       const octokit = new Octokit({ auth: env.github })
-      const cachedMetadata = await storage.getItem(metadataKey) as { sha: string, lastChecked: string, fileSha: string } | null
+      const cachedMetadataRaw = await store.get(metadataKey)
+  let cachedMetadata = null
+  if (cachedMetadataRaw && typeof cachedMetadataRaw === 'string') {
+    try {
+      cachedMetadata = JSON.parse(cachedMetadataRaw) as { sha: string, lastChecked: string, fileSha: string }
+    } catch {
+      cachedMetadata = null
+    }
+  }
 
       const { data: lastCommit } = await octokit.rest.repos.getCommit({
         owner: "DFLTPLYR",
@@ -47,7 +59,7 @@ export default defineEventHandler(async (event) => {
 
       // Return cached version if no changes
       if (cachedMetadata && cachedMetadata.sha === currentSha) {
-        const cachedContent = await storage.getItem(contentKey)
+        const cachedContent = await store.get(contentKey)
         return {
           content: cachedContent,
           cached: true,
@@ -77,8 +89,8 @@ export default defineEventHandler(async (event) => {
           ? decodeBase64(fileData.content.replace(/\n/g, ''))
           : ''
 
-        await storage.setItem(contentKey, content)
-        await storage.setItem(metadataKey, {
+        await store.set(contentKey, content)
+        await store.setJSON(metadataKey, {
           sha: currentSha,
           lastChecked: new Date().toISOString(),
           fileSha: readmeFile.sha
@@ -92,7 +104,7 @@ export default defineEventHandler(async (event) => {
       }
     } catch {
       // GitHub fetch failed, but we have cached content - return it
-      const cachedContent = await storage.getItem(contentKey)
+      const cachedContent = await store.get(contentKey)
       return {
         content: cachedContent,
         cached: true,
@@ -140,8 +152,8 @@ export default defineEventHandler(async (event) => {
       ? decodeBase64(fileData.content.replace(/\n/g, ''))
       : ''
 
-    await storage.setItem(contentKey, content)
-    await storage.setItem(metadataKey, {
+    await store.set(contentKey, content)
+    await store.setJSON(metadataKey, {
       sha: lastCommit.sha,
       lastChecked: new Date().toISOString(),
       fileSha: readmeFile.sha
