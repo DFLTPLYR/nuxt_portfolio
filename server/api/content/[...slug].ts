@@ -1,10 +1,10 @@
 import { Octokit } from "octokit"
-import { writeFile, access, readFile } from "fs/promises"
-import { join } from "path"
 
 function decodeBase64(str: string): string {
   try {
+    // @ts-ignore
     if (typeof Buffer !== 'undefined') {
+      // @ts-ignore
       return Buffer.from(str, 'base64').toString('utf-8')
     }
     const binary = atob(str)
@@ -18,25 +18,19 @@ function decodeBase64(str: string): string {
   }
 }
 
-async function fileExists(path: string): Promise<boolean> {
-  try {
-    await access(path)
-    return true
-  } catch {
-    return false
-  }
-}
+
 
 export default defineEventHandler(async (event) => {
   const env = useRuntimeConfig(event)
   const slug = event.context.params!.slug
   const storage = useStorage('content')
   const metadataKey = `content:${slug}:metadata`
-  const filePath = join(process.cwd(), 'content', `${slug}.md`)
+  const contentKey = `content:${slug}:file`
+  
+  // Check if content exists in storage
+  const hasFile = await storage.hasItem(contentKey)
 
-  const hasFile = await fileExists(filePath)
-
-  // If file exists locally, try to update from GitHub but don't fail if GitHub is unavailable
+  // If content exists in storage, try to update from GitHub but don't fail if GitHub is unavailable
   if (hasFile) {
     try {
       const octokit = new Octokit({ auth: env.github })
@@ -53,8 +47,9 @@ export default defineEventHandler(async (event) => {
 
       // Return cached version if no changes
       if (cachedMetadata && cachedMetadata.sha === currentSha) {
+        const cachedContent = await storage.getItem(contentKey)
         return {
-          path: filePath,
+          content: cachedContent,
           cached: true,
           lastUpdated: cachedMetadata.lastChecked
         }
@@ -82,8 +77,7 @@ export default defineEventHandler(async (event) => {
           ? decodeBase64(fileData.content.replace(/\n/g, ''))
           : ''
 
-        await writeFile(filePath, content, 'utf-8')
-
+        await storage.setItem(contentKey, content)
         await storage.setItem(metadataKey, {
           sha: currentSha,
           lastChecked: new Date().toISOString(),
@@ -91,15 +85,16 @@ export default defineEventHandler(async (event) => {
         })
 
         return {
-          path: filePath,
+          content: content,
           cached: false,
           lastUpdated: new Date().toISOString()
         }
       }
     } catch {
-      // GitHub fetch failed, but we have local file - return it
+      // GitHub fetch failed, but we have cached content - return it
+      const cachedContent = await storage.getItem(contentKey)
       return {
-        path: filePath,
+        content: cachedContent,
         cached: true,
         lastUpdated: new Date().toISOString(),
         source: 'local'
@@ -145,8 +140,7 @@ export default defineEventHandler(async (event) => {
       ? decodeBase64(fileData.content.replace(/\n/g, ''))
       : ''
 
-    await writeFile(filePath, content, 'utf-8')
-
+    await storage.setItem(contentKey, content)
     await storage.setItem(metadataKey, {
       sha: lastCommit.sha,
       lastChecked: new Date().toISOString(),
@@ -154,7 +148,7 @@ export default defineEventHandler(async (event) => {
     })
 
     return {
-      path: filePath,
+      content: content,
       cached: false,
       lastUpdated: new Date().toISOString()
     }
