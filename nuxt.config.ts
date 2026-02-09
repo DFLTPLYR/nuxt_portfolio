@@ -12,7 +12,9 @@ export default defineNuxtConfig({
     ]
   },
   runtimeConfig: {
-    github: import.meta.env.PERSONAL_ACCESS_TOKENS
+    github: import.meta.env.PERSONAL_ACCESS_TOKENS,
+    netlify_pat: import.meta.env.NETLIFY_PAT,
+    site_id: import.meta.env.SITE_ID,
   },
   app: {
     head: {

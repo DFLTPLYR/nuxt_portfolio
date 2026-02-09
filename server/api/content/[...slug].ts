@@ -26,7 +26,9 @@ export default defineEventHandler(async (event) => {
   const slug = event.context.params!.slug
   const store = getStore({
     name: "content",
-    consistency: "strong"
+    consistency: "strong",
+    siteID: env.site_id,
+    token: env.netlify_pat
   })
   const metadataKey = `${slug}:metadata`
   const contentKey = `${slug}:content`
