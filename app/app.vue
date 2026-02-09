@@ -15,6 +15,7 @@ useHead({
 .page-enter-active,
 .page-leave-active {
   transition: all 0.4s;
+  opacity: 1;
 }
 
 .page-enter-from,
