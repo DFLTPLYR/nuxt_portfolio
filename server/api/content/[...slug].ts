@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
   })
   const metadataKey = `${slug}:metadata`
   const contentKey = `${slug}:content`
-  
+
   // Check if content exists in blobs
   const hasFile = await store.get(metadataKey)
 
@@ -39,14 +39,14 @@ export default defineEventHandler(async (event) => {
     try {
       const octokit = new Octokit({ auth: env.github })
       const cachedMetadataRaw = await store.get(metadataKey)
-  let cachedMetadata = null
-  if (cachedMetadataRaw && typeof cachedMetadataRaw === 'string') {
-    try {
-      cachedMetadata = JSON.parse(cachedMetadataRaw) as { sha: string, lastChecked: string, fileSha: string }
-    } catch {
-      cachedMetadata = null
-    }
-  }
+      let cachedMetadata = null
+      if (cachedMetadataRaw && typeof cachedMetadataRaw === 'string') {
+        try {
+          cachedMetadata = JSON.parse(cachedMetadataRaw) as { sha: string, lastChecked: string, fileSha: string }
+        } catch {
+          cachedMetadata = null
+        }
+      }
 
       const { data: lastCommit } = await octokit.rest.repos.getCommit({
         owner: "DFLTPLYR",
