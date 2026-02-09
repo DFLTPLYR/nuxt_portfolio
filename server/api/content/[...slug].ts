@@ -1,5 +1,5 @@
 import { Octokit } from "octokit"
-import { writeFile, access } from "fs/promises"
+import { writeFile, access, readFile } from "fs/promises"
 import { join } from "path"
 
 function decodeBase64(str: string): string {
@@ -34,12 +34,82 @@ export default defineEventHandler(async (event) => {
   const metadataKey = `content:${slug}:metadata`
   const filePath = join(process.cwd(), 'content', `${slug}.md`)
 
-  try {
-    const octokit = new Octokit({
-      auth: env.github,
-    })
+  const hasFile = await fileExists(filePath)
 
-    const cachedMetadata = await storage.getItem(metadataKey) as { sha: string, lastChecked: string, fileSha: string } | null
+  // If file exists locally, try to update from GitHub but don't fail if GitHub is unavailable
+  if (hasFile) {
+    try {
+      const octokit = new Octokit({ auth: env.github })
+      const cachedMetadata = await storage.getItem(metadataKey) as { sha: string, lastChecked: string, fileSha: string } | null
+
+      const { data: lastCommit } = await octokit.rest.repos.getCommit({
+        owner: "DFLTPLYR",
+        repo: slug as string,
+        ref: "HEAD",
+        per_page: 1
+      })
+
+      const currentSha = lastCommit.sha
+
+      // Return cached version if no changes
+      if (cachedMetadata && cachedMetadata.sha === currentSha) {
+        return {
+          path: filePath,
+          cached: true,
+          lastUpdated: cachedMetadata.lastChecked
+        }
+      }
+
+      // Fetch new content from GitHub
+      const { data } = await octokit.rest.repos.getContent({
+        owner: "DFLTPLYR",
+        repo: slug as string,
+        path: "/"
+      })
+
+      const readmeFile = Array.isArray(data)
+        ? data.find(item => item.name.toLocaleLowerCase() === "readme.md")
+        : null
+
+      if (readmeFile) {
+        const { data: fileData } = await octokit.rest.repos.getContent({
+          owner: "DFLTPLYR",
+          repo: slug as string,
+          path: readmeFile.name
+        })
+
+        const content = 'content' in fileData && fileData.content
+          ? decodeBase64(fileData.content.replace(/\n/g, ''))
+          : ''
+
+        await writeFile(filePath, content, 'utf-8')
+
+        await storage.setItem(metadataKey, {
+          sha: currentSha,
+          lastChecked: new Date().toISOString(),
+          fileSha: readmeFile.sha
+        })
+
+        return {
+          path: filePath,
+          cached: false,
+          lastUpdated: new Date().toISOString()
+        }
+      }
+    } catch {
+      // GitHub fetch failed, but we have local file - return it
+      return {
+        path: filePath,
+        cached: true,
+        lastUpdated: new Date().toISOString(),
+        source: 'local'
+      }
+    }
+  }
+
+  // File doesn't exist locally, must fetch from GitHub
+  try {
+    const octokit = new Octokit({ auth: env.github })
 
     const { data: lastCommit } = await octokit.rest.repos.getCommit({
       owner: "DFLTPLYR",
@@ -47,17 +117,6 @@ export default defineEventHandler(async (event) => {
       ref: "HEAD",
       per_page: 1
     })
-
-    const currentSha = lastCommit.sha
-    const hasFile = await fileExists(filePath)
-
-    if (cachedMetadata && cachedMetadata.sha === currentSha && hasFile) {
-      return {
-        path: filePath,
-        cached: true,
-        lastUpdated: cachedMetadata.lastChecked
-      }
-    }
 
     const { data } = await octokit.rest.repos.getContent({
       owner: "DFLTPLYR",
@@ -89,7 +148,7 @@ export default defineEventHandler(async (event) => {
     await writeFile(filePath, content, 'utf-8')
 
     await storage.setItem(metadataKey, {
-      sha: currentSha,
+      sha: lastCommit.sha,
       lastChecked: new Date().toISOString(),
       fileSha: readmeFile.sha
     })

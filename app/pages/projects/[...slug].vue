@@ -1,11 +1,14 @@
 <script setup lang="ts">
 const route = useRoute()
 const slug = Array.isArray(route.params.slug) ? route.params.slug.join('/') : route.params.slug
-const { pending } = await useFetch(`/api/content/${slug}`)
 
-const { data: page } = await useAsyncData(route.path, () => {
-  return queryCollection('content').path(`/${slug}`).first()
+const { data: page, status } = await useAsyncData(route.path, async () => {
+  await $fetch(`/api/content/${slug}`)
+  const result = await queryCollection('content').path(`/${slug.toLowerCase()}`).first()
+  return result || null
 })
+
+const pending = computed(() => status.value === 'pending')
 </script>
 <template>
   <nav class="mb-4">
