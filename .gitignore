@@ -6,6 +6,9 @@
 .cache
 dist
 
+# Generated content files
+/content/*.md
+
 # Node dependencies
 node_modules
 

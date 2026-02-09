@@ -2,9 +2,12 @@
 </script>
 
 <template>
-  <main class="max-w-3xl mx-auto min-w-full grid gap-2 antialiased">
+  <main id="About" class="max-w-3xl mx-auto min-w-full grid gap-2 antialiased">
     <div class="w-full space-y-4 p-2 rounded-sm ">
       <header>
+
+        <h1 class="text-4xl font-semibold text-amber-200 mb-4">## About</h1>
+
         <h1 class="text-lg font-mono text-white  flex flex-wrap flex-row gap-1">
           <span class="text-purple-300">const </span>
           <span class="text-red-400">name </span>
@@ -12,6 +15,7 @@
           <span class="text-green-400">"john cris"<span class="text-white">;</span></span>
           <span class="text-gray-400"> // 👋 hi there</span>
         </h1>
+
 
         <p class="text-5xl font-semibold text-amber-100">
           hi! my name's <span class="text-amber-300">john cris</span>
