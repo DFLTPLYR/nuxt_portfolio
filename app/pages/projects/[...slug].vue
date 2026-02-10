@@ -1,14 +1,7 @@
 <script setup lang="ts">
 const route = useRoute()
-const slug = Array.isArray(route.params.slug) ? route.params.slug.join('/') : route.params.slug
-
-const { data: page, status } = await useAsyncData(route.path, async () => {
-  await $fetch(`/api/content/${slug}`)
-  const result = await queryCollection('content').path(`/${slug.toLowerCase()}`).first()
-  return result || null
-})
-
-const pending = computed(() => status.value === 'pending')
+const slug = route.params.slug
+const { data, pending } = useFetch(`/api/content/${slug}`);
 </script>
 <template>
   <nav class="mb-4">
@@ -20,6 +13,6 @@ const pending = computed(() => status.value === 'pending')
     </NuxtLink>
   </nav>
   <article>
-    <ContentRenderer v-if="!pending && page" :value="page" />
+    <ContentRenderer v-if="!pending" :value="data.content" />
   </article>
 </template>

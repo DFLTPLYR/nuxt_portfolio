@@ -6,15 +6,27 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ['@nuxt/content'],
   css: ['./app/assests/css/mains.css'],
+  runtimeConfig: {
+    github: import.meta.env.PERSONAL_ACCESS_TOKENS,
+    netlify_pat: import.meta.env.NETLIFY_PAT,
+    site_id: import.meta.env.SITE_ID,
+    r2_access: import.meta.env.R2_ACCESS_KEY_ID,
+    r2_secret: import.meta.env.R2_SECRET_ACCESS_KEY,
+    r2_account: import.meta.env.R2_ACCOUNT,
+    r2_bucket: import.meta.env.R2_BUCKET,
+    r2_endpoint: import.meta.env.R2_ENDPOINT,
+  },
   vite: {
     plugins: [
       tailwindcss()
     ]
   },
-  runtimeConfig: {
-    github: import.meta.env.PERSONAL_ACCESS_TOKENS,
-    netlify_pat: import.meta.env.NETLIFY_PAT,
-    site_id: import.meta.env.SITE_ID,
+  nitro: {
+    preset: "cloudflare_module",
+    cloudflare: {
+      deployConfig: true,
+      nodeCompat: true
+    }
   },
   app: {
     head: {
