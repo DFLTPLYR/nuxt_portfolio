@@ -16,6 +16,23 @@ export default defineNuxtConfig({
     r2_bucket: import.meta.env.R2_BUCKET,
     r2_endpoint: import.meta.env.R2_ENDPOINT,
   },
+  content: {
+    database: {
+      type: 'd1',
+      bindingName: 'PORTFOLIO_DB'
+    },
+    build: {
+      markdown: {
+        highlight: {
+          theme: {
+            default: 'github-light',
+            dark: 'github-dark',
+            sepia: 'monokai'
+          }
+        }
+      }
+    }
+  },
   vite: {
     plugins: [
       tailwindcss()

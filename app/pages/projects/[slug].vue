@@ -1,8 +1,12 @@
 <script setup lang="ts">
-const route = useRoute()
-const slug = route.params.slug
-const { data, pending } = useFetch(`/api/content/${slug}`);
+const slug = useRoute().params.slug as string
+const contentPath = '/' + slug.toLowerCase() + '/readme'
+
+const { data: page } = await useAsyncData('blog-' + slug, () => {
+  return queryCollection("repo").path(contentPath).first()
+})
 </script>
+
 <template>
   <nav class="mb-4">
     <NuxtLink to="/projects" class="relative group text-amber-100 hover:text-amber-300 transition-colors duration-300">
@@ -13,6 +17,6 @@ const { data, pending } = useFetch(`/api/content/${slug}`);
     </NuxtLink>
   </nav>
   <article>
-    <ContentRenderer v-if="!pending" :value="data.content" />
+    <ContentRenderer v-if="page" :value="page" />
   </article>
 </template>
