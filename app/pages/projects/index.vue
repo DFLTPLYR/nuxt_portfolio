@@ -9,7 +9,7 @@ const { data, pending } = useFetch("/api/projects")
       <div>Loading...</div>
     </template>
     <template v-else>
-      <NuxtLink :to="proj.html_url" class="border flex flex-col p-2 rounded-sm" v-for="proj in data">
+      <NuxtLink :to="'projects/' + proj.name" class="border flex flex-col p-2 rounded-sm" v-for="proj in data">
         <h1 class="text-4xl"> {{ proj.name }} </h1>
         <div class="flex flex-row flex-wrap space-x-1" v-if="proj.languages.length > 0">
           <p class="px-2 py-1 mt-5 rounded-xs w-fit" :style="{ backgroundColor: lang.color, color: lang.textColor }"
